@@ -1,0 +1,50 @@
+# Environment
+.env
+*.env.local
+
+#plans
+.plans
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Docker volumes (local)
+pgdata/
+
+# NestJS
+backend/dist/
+backend/node_modules/
+
+# Frontend
+frontend/dist/
+frontend/node_modules/
