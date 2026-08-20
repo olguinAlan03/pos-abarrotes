@@ -56,7 +56,7 @@ export function PosPage() {
     const currentTotal = getTotal()
     try {
       await salesApi.create({
-        items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
+        items: items.map((i) => ({ productKey: i.product.product_key, quantity: i.quantity })),
         paymentMethod,
       })
       clearCart()
@@ -125,7 +125,7 @@ export function PosPage() {
               </thead>
               <tbody>
                 {items.map(({ product, quantity, subtotal }) => (
-                  <tr key={product.id} className="border-b hover:bg-gray-50/70">
+                  <tr key={product.product_key} className="border-b hover:bg-gray-50/70">
                     <td className="py-2.5">
                       <p className="font-medium text-gray-800">{product.name}</p>
                       {product.barcode && (
@@ -135,14 +135,14 @@ export function PosPage() {
                     <td className="py-2.5">
                       <div className="flex items-center justify-center gap-1">
                         <button
-                          onClick={() => updateQuantity(product.id, quantity - 1)}
+                          onClick={() => updateQuantity(product.product_key, quantity - 1)}
                           className="p-1 rounded-md hover:bg-gray-200 transition-colors"
                         >
                           <Minus size={12} />
                         </button>
                         <span className="w-8 text-center font-medium tabular-nums">{quantity}</span>
                         <button
-                          onClick={() => updateQuantity(product.id, quantity + 1)}
+                          onClick={() => updateQuantity(product.product_key, quantity + 1)}
                           className="p-1 rounded-md hover:bg-gray-200 transition-colors"
                         >
                           <Plus size={12} />
@@ -153,7 +153,7 @@ export function PosPage() {
                     <td className="py-2.5 text-right font-semibold tabular-nums">{formatMXN(subtotal)}</td>
                     <td className="py-2.5 text-right">
                       <button
-                        onClick={() => removeItem(product.id)}
+                        onClick={() => removeItem(product.product_key)}
                         className="p-1.5 rounded-md hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors"
                       >
                         <Trash2 size={14} />

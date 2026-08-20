@@ -5,8 +5,8 @@ interface CartStore {
   items: CartItem[]
   paymentMethod: PaymentMethod
   addItem: (product: Product, quantity?: number) => void
-  updateQuantity: (productId: number, quantity: number) => void
-  removeItem: (productId: number) => void
+  updateQuantity: (productKey: string, quantity: number) => void
+  removeItem: (productKey: string) => void
   setPaymentMethod: (method: PaymentMethod) => void
   clearCart: () => void
   getTotal: () => number
@@ -18,11 +18,11 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
   addItem: (product, quantity = 1) => {
     const items = get().items
-    const existing = items.find((i) => i.product.id === product.id)
+    const existing = items.find((i) => i.product.product_key === product.product_key)
     if (existing) {
       set({
         items: items.map((i) =>
-          i.product.id === product.id
+          i.product.product_key === product.product_key
             ? {
                 ...i,
                 quantity: i.quantity + quantity,
@@ -41,22 +41,22 @@ export const useCartStore = create<CartStore>((set, get) => ({
     }
   },
 
-  updateQuantity: (productId, quantity) => {
+  updateQuantity: (productKey, quantity) => {
     if (quantity <= 0) {
-      get().removeItem(productId)
+      get().removeItem(productKey)
       return
     }
     set({
       items: get().items.map((i) =>
-        i.product.id === productId
+        i.product.product_key === productKey
           ? { ...i, quantity, subtotal: Math.round(i.product.price * quantity) }
           : i,
       ),
     })
   },
 
-  removeItem: (productId) => {
-    set({ items: get().items.filter((i) => i.product.id !== productId) })
+  removeItem: (productKey) => {
+    set({ items: get().items.filter((i) => i.product.product_key !== productKey) })
   },
 
   setPaymentMethod: (paymentMethod) => set({ paymentMethod }),

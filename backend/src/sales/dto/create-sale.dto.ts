@@ -3,8 +3,7 @@ import {
   IsArray,
   ValidateNested,
   ArrayMinSize,
-  IsInt,
-  IsPositive,
+  IsUUID,
   IsNumber,
   Min,
 } from 'class-validator';
@@ -12,9 +11,8 @@ import { Type } from 'class-transformer';
 import { PaymentMethod } from '../enums/payment-method.enum';
 
 export class SaleItemDto {
-  @IsInt()
-  @IsPositive()
-  productId: number;
+  @IsUUID()
+  productKey: string;
 
   @IsNumber()
   @Min(0.001)

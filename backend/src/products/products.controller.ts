@@ -7,7 +7,6 @@ import {
   Body,
   Param,
   Query,
-  ParseIntPipe,
   UseGuards,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
@@ -19,7 +18,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../auth/enums/user-role.enum';
 
-@UseGuards(JwtAuthGuard)
+//@UseGuards(JwtAuthGuard)
 @Controller()
 export class ProductsController {
   constructor(private productsService: ProductsService) {}
@@ -39,9 +38,9 @@ export class ProductsController {
   @Get('products')
   getProducts(
     @Query('search') search?: string,
-    @Query('categoryId') categoryId?: string,
+    @Query('categoryKey') categoryKey?: string,
   ) {
-    return this.productsService.findAll(search, categoryId ? +categoryId : undefined);
+    return this.productsService.findAll(search, categoryKey);
   }
 
   @Get('products/barcode/:code')
@@ -49,9 +48,9 @@ export class ProductsController {
     return this.productsService.findByBarcode(code);
   }
 
-  @Get('products/:id')
-  getProduct(@Param('id', ParseIntPipe) id: number) {
-    return this.productsService.findOne(id);
+  @Get('products/:key')
+  getProduct(@Param('key') key: string) {
+    return this.productsService.findOne(key);
   }
 
   @UseGuards(RolesGuard)
@@ -63,18 +62,15 @@ export class ProductsController {
 
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
-  @Put('products/:id')
-  updateProduct(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateProductDto,
-  ) {
-    return this.productsService.update(id, dto);
+  @Put('products/:key')
+  updateProduct(@Param('key') key: string, @Body() dto: UpdateProductDto) {
+    return this.productsService.update(key, dto);
   }
 
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
-  @Delete('products/:id')
-  removeProduct(@Param('id', ParseIntPipe) id: number) {
-    return this.productsService.remove(id);
+  @Delete('products/:key')
+  removeProduct(@Param('key') key: string) {
+    return this.productsService.remove(key);
   }
 }

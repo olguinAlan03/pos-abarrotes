@@ -15,7 +15,7 @@ export function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [search, setSearch] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<number | undefined>()
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>()
   const [showModal, setShowModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | undefined>()
   const [loading, setLoading] = useState(true)
@@ -71,11 +71,11 @@ export function ProductsPage() {
         <select
           className="border rounded-lg px-3 py-2 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300"
           value={selectedCategory ?? ''}
-          onChange={(e) => setSelectedCategory(e.target.value ? +e.target.value : undefined)}
+          onChange={(e) => setSelectedCategory(e.target.value || undefined)}
         >
           <option value="">{t.allCategories}</option>
           {categories.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
+            <option key={c.category_key} value={c.category_key}>{c.name}</option>
           ))}
         </select>
       </div>
@@ -97,13 +97,9 @@ export function ProductsPage() {
             </thead>
             <tbody>
               {products.map((product) => (
-                <tr key={product.id} className="border-b last:border-0 hover:bg-gray-50/70 transition-colors">
+                <tr key={product.product_key} className="border-b last:border-0 hover:bg-gray-50/70 transition-colors">
                   <td className="px-4 py-3 font-medium text-gray-800">{product.name}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-gray-400">
-                    {product.barcode ?? (
-                      <span className="italic text-gray-300">{t.noBarcode}</span>
-                    )}
-                  </td>
+                  <td className="px-4 py-3 font-mono text-xs text-gray-400">{product.barcode}</td>
                   <td className="px-4 py-3">
                     <Badge variant="secondary">{product.category?.name}</Badge>
                   </td>

@@ -41,6 +41,16 @@ Thumbs.db
 # Docker volumes (local)
 pgdata/
 
+# Local database files (never commit local DB artifacts)
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.backup
+*.sql.gz
+backend/dumps/
+*.migration.log
+
 # NestJS
 backend/dist/
 backend/node_modules/

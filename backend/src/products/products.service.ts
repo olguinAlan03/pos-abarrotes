@@ -29,11 +29,10 @@ export class ProductsService {
     return this.categoriesRepo.save(category);
   }
 
-  findAll(search?: string, categoryId?: number) {
+  findAll(search?: string, categoryKey?: string) {
     const qb = this.productsRepo
       .createQueryBuilder('p')
-      .leftJoinAndSelect('p.category', 'c')
-      .where('p.deletedAt IS NULL');
+      .leftJoinAndSelect('p.category', 'c');
 
     if (search) {
       qb.andWhere('LOWER(p.name) LIKE :search OR p.barcode LIKE :search', {
@@ -41,19 +40,19 @@ export class ProductsService {
       });
     }
 
-    if (categoryId) {
-      qb.andWhere('p.categoryId = :categoryId', { categoryId });
+    if (categoryKey) {
+      qb.andWhere('p.category_key = :categoryKey', { categoryKey });
     }
 
     return qb.orderBy('p.name', 'ASC').getMany();
   }
 
-  async findOne(id: number) {
+  async findOne(productKey: string) {
     const product = await this.productsRepo.findOne({
-      where: { id },
+      where: { product_key: productKey },
       relations: { category: true },
     });
-    if (!product) throw new NotFoundException(`Product #${id} not found`);
+    if (!product) throw new NotFoundException(`Product ${productKey} not found`);
     return product;
   }
 
@@ -67,31 +66,41 @@ export class ProductsService {
   }
 
   async create(dto: CreateProductDto) {
-    if (dto.barcode) {
-      const existing = await this.productsRepo.findOne({
-        where: { barcode: dto.barcode },
-      });
-      if (existing) throw new ConflictException('Barcode already in use');
-    }
+    const existing = await this.productsRepo.findOne({
+      where: { barcode: dto.barcode },
+    });
+    if (existing) throw new ConflictException('Barcode already in use');
 
     const category = await this.categoriesRepo.findOne({
-      where: { id: dto.categoryId },
+      where: { category_key: dto.categoryKey },
     });
     if (!category) throw new NotFoundException('Category not found');
 
-    const product = this.productsRepo.create(dto);
+    const product = this.productsRepo.create({
+      name: dto.name,
+      barcode: dto.barcode,
+      price: dto.price,
+      cost: dto.cost,
+      stock: dto.stock,
+      category_key: dto.categoryKey,
+    });
     return this.productsRepo.save(product);
   }
 
-  async update(id: number, dto: UpdateProductDto) {
-    const product = await this.findOne(id);
-    Object.assign(product, dto);
+  async update(productKey: string, dto: UpdateProductDto) {
+    const product = await this.findOne(productKey);
+    if (dto.name !== undefined) product.name = dto.name;
+    if (dto.barcode !== undefined) product.barcode = dto.barcode;
+    if (dto.price !== undefined) product.price = dto.price;
+    if (dto.cost !== undefined) product.cost = dto.cost;
+    if (dto.stock !== undefined) product.stock = dto.stock;
+    if (dto.categoryKey !== undefined) product.category_key = dto.categoryKey;
     return this.productsRepo.save(product);
   }
 
-  async remove(id: number) {
-    const product = await this.findOne(id);
-    await this.productsRepo.softRemove(product);
+  async remove(productKey: string) {
+    const product = await this.findOne(productKey);
+    await this.productsRepo.remove(product);
     return { message: 'Product deleted' };
   }
 }

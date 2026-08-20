@@ -1,7 +1,7 @@
 export type UserRole = 'admin' | 'cashier'
 
 export interface User {
-  id: string
+  user_key: string
   username: string
   role: UserRole
 }
@@ -12,17 +12,18 @@ export interface AuthState {
 }
 
 export interface Category {
-  id: number
+  category_key: string
   name: string
 }
 
 export interface Product {
-  id: number
+  product_key: string
+  barcode: string
   name: string
-  barcode: string | null
   price: number
   cost: number
-  categoryId: number
+  stock: number
+  category_key: string
   category: Category
 }
 
@@ -35,33 +36,24 @@ export interface CartItem {
 export type PaymentMethod = 'CASH' | 'CARD' | 'CREDIT'
 
 export interface CreateSaleDto {
-  items: { productId: number; quantity: number }[]
+  items: { productKey: string; quantity: number }[]
   paymentMethod: PaymentMethod
 }
 
 export interface SaleItem {
-  id: number
-  productId: number
+  sale_items_key: string
+  sale_key: string
+  product_key: string
   product: Product
   quantity: number
-  unitPrice: number
   subtotal: number
 }
 
 export interface Sale {
-  id: string
-  items: SaleItem[]
+  sale_key: string
+  saleItems: SaleItem[]
   total: number
-  paymentMethod: PaymentMethod
-  status: 'COMPLETED' | 'VOIDED'
-  cashierId: string
-  createdAt: string
-}
-
-export interface Stock {
-  id: number
-  productId: number
-  quantity: number
-  lowStockThreshold: number
-  product: Product
+  payment_method: PaymentMethod
+  user_key: string
+  created_at: string
 }

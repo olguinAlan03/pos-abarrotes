@@ -1,32 +1,32 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+  import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Sale } from '../../sales/entities/sale.entity';
+import { CreditPayment } from '../../credits/entities/credit-payment.entity';
+import { CashRegisterCut } from '../../cash-register/entities/cash-register-cut.entity';
 import { UserRole } from '../enums/user-role.enum';
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  user_key: string;
 
-  @Column({ unique: true })
+  @Column({ type: 'varchar', unique: true })
   username: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   password: string;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.CASHIER })
   role: UserRole;
 
-  @Column({ default: true })
-  isActive: boolean;
+  // One cashier/admin can register many sales.
+  @OneToMany(() => Sale, (sale) => sale.user)
+  sales: Sale[];
 
-  @CreateDateColumn()
-  createdAt: Date;
+  // One cashier/admin can register many credit payments.
+  @OneToMany(() => CreditPayment, (payment) => payment.registeredBy)
+  creditPayments: CreditPayment[];
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+  // One admin can perform many daily cash register cuts.
+  @OneToMany(() => CashRegisterCut, (cut) => cut.cutBy)
+  cashRegisterCuts: CashRegisterCut[];
 }
