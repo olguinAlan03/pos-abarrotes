@@ -4,45 +4,50 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Category } from './category.entity';
+import { SaleItem } from '../../sales/entities/sale-item.entity';
+import { Restock } from '../../suppliers/entities/restock.entity';
+import { BottleReturn } from '../../containers/entities/bottle-return.entity';
 
 @Entity('products')
 export class Product {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  product_key: string;
 
-  @Column()
+  @Column({ type: 'varchar', unique: true })
+  barcode: string;
+
+  @Column({ type: 'varchar' })
   name: string;
-
-  @Column({ type: 'varchar', unique: true, nullable: true })
-  barcode: string | null;
 
   @Column({ type: 'int', comment: 'Sale price in centavos (MXN)' })
   price: number;
 
-  @Column({ type: 'int', default: 0, comment: 'Purchase cost in centavos (MXN)' })
+  @Column({ type: 'int', comment: 'Purchase cost in centavos (MXN)' })
   cost: number;
 
-  @ManyToOne(() => Category, { nullable: false })
-  @JoinColumn({ name: 'category_id' })
+  @Column({ type: 'int', default: 0 })
+  stock: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 3, default: 0 })
+  min_stock_alert: number;
+
+  // Many products belong to one category.
+  @ManyToOne(() => Category, (category) => category.products, { nullable: false })
+  @JoinColumn({ name: 'category_key' })
   category: Category;
 
-  @Column({ name: 'category_id' })
-  categoryId: number;
+  @Column({ type: 'uuid' })
+  category_key: string;
 
-  @Column({ default: true })
-  isActive: boolean;
+  @OneToMany(() => SaleItem, (saleItem) => saleItem.product)
+  saleItems: SaleItem[];
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @OneToMany(() => Restock, (restock) => restock.product)
+  restocks: Restock[];
 
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
-  deletedAt: Date | null;
+  @OneToMany(() => BottleReturn, (bottleReturn) => bottleReturn.product)
+  bottleReturns: BottleReturn[];
 }

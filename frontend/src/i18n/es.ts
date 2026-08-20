@@ -66,7 +66,6 @@ export const es = {
     searchPlaceholder: 'Buscar productos...',
     allCategories: 'Todas las categorías',
     loading: 'Cargando...',
-    noBarcode: 'sin código',
     noResults: 'No se encontraron productos',
     table: {
       name: 'Nombre',
@@ -80,10 +79,11 @@ export const es = {
       titleCreate: 'Nuevo producto',
       titleEdit: 'Editar producto',
       name: 'Nombre',
-      barcode: 'Código de barras (opcional)',
+      barcode: 'Código de barras',
       barcodePlaceholder: 'Escanear o escribir código',
       price: 'Precio (centavos)',
       cost: 'Costo (centavos)',
+      stock: 'Existencias',
       category: 'Categoría',
       categoryPlaceholder: 'Seleccionar categoría',
       cancel: 'Cancelar',
@@ -91,8 +91,10 @@ export const es = {
       saving: 'Guardando...',
       validation: {
         nameRequired: 'El nombre es obligatorio',
+        barcodeRequired: 'El código de barras es obligatorio',
         pricePositive: 'El precio debe ser mayor a cero',
         costNonNegative: 'El costo no puede ser negativo',
+        stockNonNegative: 'Las existencias no pueden ser negativas',
         categoryRequired: 'Selecciona una categoría',
       },
     },
@@ -107,16 +109,11 @@ export const es = {
       date: 'Fecha',
       payment: 'Pago',
       total: 'Total',
-      status: 'Estado',
     },
     paymentLabels: {
       CASH: 'Efectivo',
       CARD: 'Tarjeta',
       CREDIT: 'Crédito',
-    },
-    statusLabels: {
-      COMPLETED: 'Completada',
-      VOIDED: 'Anulada',
     },
   },
 } as const

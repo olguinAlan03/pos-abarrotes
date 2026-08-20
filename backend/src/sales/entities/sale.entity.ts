@@ -2,44 +2,42 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  OneToMany,
-  CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
+  CreateDateColumn,
 } from 'typeorm';
-import { SaleItem } from './sale-item.entity';
 import { User } from '../../auth/entities/user.entity';
+import { SaleItem } from './sale-item.entity';
+import { Credit } from '../../credits/entities/credit.entity';
 import { PaymentMethod } from '../enums/payment-method.enum';
-
-export enum SaleStatus {
-  COMPLETED = 'COMPLETED',
-  VOIDED = 'VOIDED',
-}
 
 @Entity('sales')
 export class Sale {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  sale_key: string;
 
-  @OneToMany(() => SaleItem, (item) => item.sale, { cascade: true, eager: true })
-  items: SaleItem[];
-
-  @Column({ type: 'int', comment: 'Total in centavos' })
+  @Column({ type: 'int', comment: 'Total in centavos (MXN)' })
   total: number;
 
   @Column({ type: 'enum', enum: PaymentMethod })
-  paymentMethod: PaymentMethod;
+  payment_method: PaymentMethod;
 
-  @Column({ type: 'enum', enum: SaleStatus, default: SaleStatus.COMPLETED })
-  status: SaleStatus;
+  // Many sales are registered by one cashier/admin.
+  @ManyToOne(() => User, (user) => user.sales, { nullable: false })
+  @JoinColumn({ name: 'user_key' })
+  user: User;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'cashier_id' })
-  cashier: User;
+  @Column({ type: 'uuid' })
+  user_key: string;
 
-  @Column({ name: 'cashier_id' })
-  cashierId: string;
+  @CreateDateColumn({ type: 'timestamp' })
+  created_at: Date;
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @OneToMany(() => SaleItem, (saleItem) => saleItem.sale)
+  saleItems: SaleItem[];
+
+  // A CREDIT sale produces a credit ledger entry.
+  @OneToMany(() => Credit, (credit) => credit.sale)
+  credits: Credit[];
 }

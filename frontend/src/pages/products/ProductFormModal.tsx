@@ -13,10 +13,11 @@ const v = t.validation
 
 const schema = z.object({
   name: z.string().min(1, v.nameRequired),
-  barcode: z.string().optional(),
+  barcode: z.string().min(1, v.barcodeRequired),
   price: z.coerce.number().int().positive(v.pricePositive),
   cost: z.coerce.number().int().min(0, v.costNonNegative),
-  categoryId: z.coerce.number().int().positive(v.categoryRequired),
+  stock: z.coerce.number().int().min(0, v.stockNonNegative),
+  categoryKey: z.string().uuid(v.categoryRequired),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -40,20 +41,20 @@ export function ProductFormModal({ product, categories, onClose, onSaved }: Prop
     defaultValues: product
       ? {
           name: product.name,
-          barcode: product.barcode ?? '',
+          barcode: product.barcode,
           price: product.price,
           cost: product.cost,
-          categoryId: product.categoryId,
+          stock: product.stock,
+          categoryKey: product.category_key,
         }
-      : { cost: 0 },
+      : { cost: 0, stock: 0 },
   })
 
   async function onSubmit(values: FormValues) {
-    const payload = { ...values, barcode: values.barcode || undefined }
     if (isEdit) {
-      await productsApi.update(product.id, payload)
+      await productsApi.update(product.product_key, values)
     } else {
-      await productsApi.create(payload as any)
+      await productsApi.create(values)
     }
     onSaved()
   }
@@ -79,7 +80,7 @@ export function ProductFormModal({ product, categories, onClose, onSaved }: Prop
             <Input {...register('barcode')} placeholder={t.barcodePlaceholder} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <Label>{t.price}</Label>
               <Input type="number" {...register('price')} />
@@ -90,21 +91,26 @@ export function ProductFormModal({ product, categories, onClose, onSaved }: Prop
               <Input type="number" {...register('cost')} />
               {errors.cost && <p className="text-red-500 text-xs">{errors.cost.message}</p>}
             </div>
+            <div className="space-y-1.5">
+              <Label>{t.stock}</Label>
+              <Input type="number" {...register('stock')} />
+              {errors.stock && <p className="text-red-500 text-xs">{errors.stock.message}</p>}
+            </div>
           </div>
 
           <div className="space-y-1.5">
             <Label>{t.category}</Label>
             <select
               className="w-full border rounded-lg px-3 py-2 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300"
-              {...register('categoryId')}
+              {...register('categoryKey')}
             >
               <option value="">{t.categoryPlaceholder}</option>
               {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.category_key} value={c.category_key}>{c.name}</option>
               ))}
             </select>
-            {errors.categoryId && (
-              <p className="text-red-500 text-xs">{errors.categoryId.message}</p>
+            {errors.categoryKey && (
+              <p className="text-red-500 text-xs">{errors.categoryKey.message}</p>
             )}
           </div>
 

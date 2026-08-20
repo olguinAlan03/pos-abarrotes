@@ -10,29 +10,28 @@ import { Product } from '../../products/entities/product.entity';
 
 @Entity('sale_items')
 export class SaleItem {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  sale_items_key: string;
 
-  @ManyToOne(() => Sale, (sale) => sale.items)
-  @JoinColumn({ name: 'sale_id' })
+  // Many line items belong to one sale.
+  @ManyToOne(() => Sale, (sale) => sale.saleItems, { nullable: false })
+  @JoinColumn({ name: 'sale_key' })
   sale: Sale;
 
-  @Column({ name: 'sale_id' })
-  saleId: string;
+  @Column({ type: 'uuid' })
+  sale_key: string;
 
-  @ManyToOne(() => Product)
-  @JoinColumn({ name: 'product_id' })
+  // Many line items can reference the same product.
+  @ManyToOne(() => Product, (product) => product.saleItems, { nullable: false })
+  @JoinColumn({ name: 'product_key' })
   product: Product;
 
-  @Column({ name: 'product_id' })
-  productId: number;
+  @Column({ type: 'uuid' })
+  product_key: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 3 })
   quantity: number;
 
-  @Column({ type: 'int', comment: 'Unit price at time of sale in centavos' })
-  unitPrice: number;
-
-  @Column({ type: 'int', comment: 'Subtotal in centavos' })
+  @Column({ type: 'int', comment: 'Subtotal in centavos (MXN)' })
   subtotal: number;
 }

@@ -3,8 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
-import { InventoryModule } from './inventory/inventory.module';
 import { SalesModule } from './sales/sales.module';
+import { CreditsModule } from './credits/credits.module';
 
 @Module({
   imports: [
@@ -20,14 +20,14 @@ import { SalesModule } from './sales/sales.module';
         database: config.get('POSTGRES_DB'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         migrations: [__dirname + '/database/migrations/*{.ts,.js}'],
-        synchronize: config.get('NODE_ENV') === 'development',
+        synchronize: false,
         logging: config.get('NODE_ENV') === 'development',
       }),
     }),
     AuthModule,
     ProductsModule,
-    InventoryModule,
     SalesModule,
+    CreditsModule,
   ],
 })
 export class AppModule {}

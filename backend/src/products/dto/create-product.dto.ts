@@ -1,12 +1,11 @@
-import { IsString, IsInt, Min, IsOptional, IsPositive } from 'class-validator';
+import { IsString, IsInt, Min, IsPositive, IsUUID } from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
   name: string;
 
-  @IsOptional()
   @IsString()
-  barcode?: string;
+  barcode: string;
 
   @IsInt()
   @IsPositive()
@@ -17,6 +16,9 @@ export class CreateProductDto {
   cost: number;
 
   @IsInt()
-  @IsPositive()
-  categoryId: number;
+  @Min(0)
+  stock: number;
+
+  @IsUUID()
+  categoryKey: string;
 }

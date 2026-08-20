@@ -1,96 +1,87 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { Sale, SaleStatus } from './entities/sale.entity';
+import { Sale } from './entities/sale.entity';
 import { SaleItem } from './entities/sale-item.entity';
+import { Product } from '../products/entities/product.entity';
 import { CreateSaleDto } from './dto/create-sale.dto';
-import { InventoryService } from '../inventory/inventory.service';
-import { ProductsService } from '../products/products.service';
 
 @Injectable()
 export class SalesService {
   constructor(
     @InjectRepository(Sale) private salesRepo: Repository<Sale>,
     private dataSource: DataSource,
-    private inventoryService: InventoryService,
-    private productsService: ProductsService,
   ) {}
 
-  async create(dto: CreateSaleDto, cashierId: string): Promise<Sale> {
-    return this.dataSource.transaction(async (manager) => {
+  async create(dto: CreateSaleDto, userKey: string): Promise<Sale> {
+    const saleKey = await this.dataSource.transaction(async (manager) => {
+      const productsRepo = manager.getRepository(Product);
       let total = 0;
       const itemsToSave: Partial<SaleItem>[] = [];
 
       for (const itemDto of dto.items) {
-        const product = await this.productsService.findOne(itemDto.productId);
+        const product = await productsRepo.findOne({
+          where: { product_key: itemDto.productKey },
+        });
+        if (!product) {
+          throw new NotFoundException(`Product ${itemDto.productKey} not found`);
+        }
+        if (product.stock < itemDto.quantity) {
+          throw new BadRequestException(
+            `Insufficient stock for "${product.name}". Available: ${product.stock}`,
+          );
+        }
+
         const subtotal = Math.round(product.price * itemDto.quantity);
         total += subtotal;
 
         itemsToSave.push({
-          productId: product.id,
+          product_key: product.product_key,
           quantity: itemDto.quantity,
-          unitPrice: product.price,
           subtotal,
         });
 
-        await this.inventoryService.decrementStock(
-          product.id,
-          itemDto.quantity,
-          'pending',
-          manager,
-        );
+        // Stock decrement happens atomically within this same transaction —
+        // if any later item fails (e.g. insufficient stock), everything
+        // before it rolls back too.
+        product.stock -= itemDto.quantity;
+        await productsRepo.save(product);
       }
 
-      const sale = manager.getRepository(Sale).create({
-        cashierId,
-        paymentMethod: dto.paymentMethod,
-        total,
-        items: itemsToSave as SaleItem[],
-      });
+      const sale = await manager.getRepository(Sale).save(
+        manager.getRepository(Sale).create({
+          user_key: userKey,
+          payment_method: dto.paymentMethod,
+          total,
+        }),
+      );
 
-      const saved = await manager.getRepository(Sale).save(sale);
-      return saved;
+      const saleItems = itemsToSave.map((item) =>
+        manager.getRepository(SaleItem).create({ ...item, sale_key: sale.sale_key }),
+      );
+      await manager.getRepository(SaleItem).save(saleItems);
+
+      return sale.sale_key;
     });
+
+    return this.findOne(saleKey);
   }
 
   findAll(page = 1, limit = 20) {
     return this.salesRepo.find({
-      order: { createdAt: 'DESC' },
+      order: { created_at: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
-      relations: { cashier: true },
+      relations: { user: true },
     });
   }
 
-  async findOne(id: string) {
+  async findOne(saleKey: string) {
     const sale = await this.salesRepo.findOne({
-      where: { id },
-      relations: { items: { product: true }, cashier: true },
+      where: { sale_key: saleKey },
+      relations: { saleItems: { product: true }, user: true },
     });
-    if (!sale) throw new NotFoundException(`Sale #${id} not found`);
+    if (!sale) throw new NotFoundException(`Sale ${saleKey} not found`);
     return sale;
-  }
-
-  async void(id: string, cashierId: string) {
-    const sale = await this.findOne(id);
-    if (sale.status === SaleStatus.VOIDED) {
-      throw new NotFoundException('Sale is already voided');
-    }
-
-    return this.dataSource.transaction(async (manager) => {
-      sale.status = SaleStatus.VOIDED;
-      await manager.getRepository(Sale).save(sale);
-
-      for (const item of sale.items) {
-        await this.inventoryService.manualAdjustment(
-          item.productId,
-          Number(item.quantity),
-          `Reversal for voided sale ${id}`,
-          manager,
-        );
-      }
-
-      return { message: 'Sale voided successfully' };
-    });
   }
 }

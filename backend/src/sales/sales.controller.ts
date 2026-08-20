@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Post,
-  Delete,
   Body,
   Param,
   Query,
@@ -12,9 +11,6 @@ import {
 import { SalesService } from './sales.service';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../common/guards/roles.guard';
-import { Roles } from '../common/decorators/roles.decorator';
-import { UserRole } from '../auth/enums/user-role.enum';
 
 @UseGuards(JwtAuthGuard)
 @Controller('sales')
@@ -23,7 +19,7 @@ export class SalesController {
 
   @Post()
   create(@Body() dto: CreateSaleDto, @Request() req: any) {
-    return this.salesService.create(dto, req.user.id);
+    return this.salesService.create(dto, req.user.user_key);
   }
 
   @Get()
@@ -31,15 +27,8 @@ export class SalesController {
     return this.salesService.findAll(page ? +page : 1, limit ? +limit : 20);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.salesService.findOne(id);
-  }
-
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
-  @Delete(':id')
-  void(@Param('id') id: string, @Request() req: any) {
-    return this.salesService.void(id, req.user.id);
+  @Get(':key')
+  findOne(@Param('key') key: string) {
+    return this.salesService.findOne(key);
   }
 }
