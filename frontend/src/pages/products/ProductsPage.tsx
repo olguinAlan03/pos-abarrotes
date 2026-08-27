@@ -9,6 +9,7 @@ import { es } from '@/i18n/es'
 import type { Product, Category } from '@/types'
 import { ProductFormModal } from './ProductFormModal'
 
+
 const t = es.products
 
 export function ProductsPage() {
@@ -19,6 +20,7 @@ export function ProductsPage() {
   const [showModal, setShowModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | undefined>()
   const [loading, setLoading] = useState(true)
+  const [,setShowCategoryModal] = useState(false)
 
   async function loadData() {
     setLoading(true)
@@ -52,10 +54,16 @@ export function ProductsPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-gray-800">{t.title}</h1>
-        <Button onClick={openCreate} size="sm">
-          <Plus size={15} />
-          {t.newButton}
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setShowCategoryModal(true)}>
+            <Plus size={15} />
+            Categoría
+          </Button>
+          <Button onClick={openCreate} size="sm">
+            <Plus size={15} />
+            {t.newButton}
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-3 mb-4">
