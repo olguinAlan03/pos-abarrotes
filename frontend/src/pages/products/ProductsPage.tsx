@@ -4,10 +4,12 @@ import { formatMXN } from '@/lib/currency'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Plus, Search } from 'lucide-react'
+import {CheckCircle, Plus, Search} from 'lucide-react'
 import { es } from '@/i18n/es'
 import type { Product, Category } from '@/types'
 import { ProductFormModal } from './ProductFormModal'
+import { CreateCategoryModal } from '@/components/categories/CreateCategoryModal'
+
 
 
 const t = es.products
@@ -20,7 +22,14 @@ export function ProductsPage() {
   const [showModal, setShowModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | undefined>()
   const [loading, setLoading] = useState(true)
-  const [,setShowCategoryModal] = useState(false)
+  const [showCategoryModal,setShowCategoryModal] = useState(false)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const showToast = (msg: string) => {
+    setToastMessage(msg)
+    setTimeout(() => {
+      setToastMessage(null)
+    }, 3000)
+  }
 
   async function loadData() {
     setLoading(true)
@@ -139,6 +148,22 @@ export function ProductsPage() {
           onClose={() => setShowModal(false)}
           onSaved={handleSaved}
         />
+      )}
+      {showCategoryModal && (
+          <CreateCategoryModal
+              isOpen={showCategoryModal}
+              onClose={() => setShowCategoryModal(false)}
+              onCategoryCreated={() => {
+                loadData()
+                showToast('Categoría creada exitosamente')
+              }}
+          />
+      )}
+      {toastMessage && (
+          <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-medium text-white shadow-xl transition-all">
+            <CheckCircle size={18} />
+            <span>{toastMessage}</span>
+          </div>
       )}
     </div>
   )
